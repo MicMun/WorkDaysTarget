@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">WorkDaysTarget</string>
+	<string name="monday">Mo</string>
+	<string name="tuesday">Tu</string>
+	<string name="wednesday">We</string>
+	<string name="thursday">Th</string>
+	<string name="friday">Fr</string>
+	<string name="saturday">Sa</string>
+	<string name="sunday">So</string>
+	<string name="holidays">Ho</string>
+	<string name="descServicePermission">Permission to access DaysLeftService.</string>
+</resources>
