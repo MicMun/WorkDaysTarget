@@ -19,6 +19,7 @@ package de.micmun.android.workdaystarget;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.content.Intent;
 
 /**
  * Provider for data of widget.
@@ -38,6 +39,9 @@ public class DaysLeftProvider extends AppWidgetProvider {
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {
 		mContext = context;
+		Intent sIntent = new Intent(mContext, DaysLeftService.class);
+		sIntent.setAction(DaysLeftService.ACTION_UPDATE);
+		mContext.startService(sIntent);
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 	}
 

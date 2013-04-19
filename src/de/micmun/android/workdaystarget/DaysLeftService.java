@@ -36,6 +36,9 @@ import android.util.Log;
 public class DaysLeftService extends IntentService {
 	private static final String TAG = "DaysLeftService";
 
+	/**
+	 * Action for intent, which starts the service.
+	 */
 	public static final String ACTION_UPDATE = "de.micmun.android.workdaystarget.ACTION_UPDATE";
 
 	/**
@@ -43,7 +46,6 @@ public class DaysLeftService extends IntentService {
 	 */
 	public DaysLeftService() {
 		super(TAG);
-
 	}
 
 	/**
@@ -66,13 +68,21 @@ public class DaysLeftService extends IntentService {
 		AppWidgetManager appManager = AppWidgetManager.getInstance(this);
 		ComponentName cName = new ComponentName(this, DaysLeftProvider.class);
 		int[] appIds = appManager.getAppWidgetIds(cName);
-		Calendar now = Calendar.getInstance();
-		try {
-			DayCalculator dayCalc = new DayCalculator(now.getTime());
-		} catch (JSONException e) {
-			Log.e(TAG, e.getMessage());
-		}
-		
-	}
 
+		DayCalculator dayCalc = new DayCalculator();
+
+		for (int appId : appIds) {
+			Log.d(TAG, "Widget: " + appId);
+			PrefManager pm = new PrefManager(this, appId);
+			Calendar target = pm.getTarget();
+			boolean[] chkDays = pm.getCheckedDays();
+			int days = 0;
+			try {
+				days = dayCalc.getDaysLeft(target.getTime(), chkDays);
+			} catch (JSONException e) {
+				Log.e(TAG, "ERROR holidays: " + e.getLocalizedMessage());
+			}
+			Log.d(TAG, "Days: " + days);
+		}
+	}
 }

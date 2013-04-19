@@ -27,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import org.json.JSONArray;
@@ -47,35 +46,37 @@ public class DayCalculator {
 
 	private Calendar today = null;
 	private Calendar target = null;
-	private List<Date> holidays = null;
 
 	/**
 	 * Creates a new DayCalculator with target date.
 	 * 
 	 * @param t
 	 *           target date.
-	 * @throws JSONException
-	 *            if getting the holidays fails.
 	 */
-	public DayCalculator(Date t) throws JSONException {
+	public DayCalculator() {
 		today = Calendar.getInstance();
 		target = Calendar.getInstance();
-		target.setTime(t);
-		setMidnight();
-		holidays = new ArrayList<Date>();
-		getHolidays();
+		setMidnight(today);
 	}
 
 	/**
 	 * Returns the number of days between today and target, skipped days in
 	 * appliance of checkedDays.
 	 * 
+	 * @param t
+	 *           Date of the target, to which to calculate the working days.
 	 * @param checkedDays
 	 *           Array with boolean flags, which says if a weekday should count
 	 *           or not.
 	 * @return days to target.
+	 * @throws JSONException
+	 *            if an error occurs while getting the holidays from web service.
 	 */
-	public int getDaysLeft(boolean[] checkedDays) {
+	public int getDaysLeft(Date t, boolean[] checkedDays) throws JSONException {
+		target.setTime(t);
+		setMidnight(target);
+		ArrayList<Date> holidays = getHolidays();
+
 		int count = 0;
 		Calendar curr = Calendar.getInstance();
 		curr.setTime(today.getTime());
@@ -84,7 +85,7 @@ public class DayCalculator {
 			curr.add(Calendar.DAY_OF_MONTH, 1);
 			int dayOfWeek = curr.get(Calendar.DAY_OF_WEEK);
 
-			if (!checkedDays[POS_HOLIDAY] && isHoliday(curr)) {
+			if (!checkedDays[POS_HOLIDAY] && holidays.contains(curr.getTime())) {
 				continue;
 			} else if (!checkedDays[POS_SUNDAY] && dayOfWeek == Calendar.SUNDAY) {
 				continue;
@@ -99,24 +100,15 @@ public class DayCalculator {
 	}
 
 	/**
-	 * Returns <code>true</code>, if the date is a holiday.
-	 * 
-	 * @param d
-	 *           Date to check.
-	 * @return <code>true</code>, if the date is a holiday.
-	 */
-	private boolean isHoliday(Calendar d) {
-		return holidays.contains(d.getTime());
-	}
-
-	/**
 	 * Returns the list with holydays between now and target.
 	 * 
 	 * @return the list with holydays between now and target.
 	 * @throws JSONException
 	 *            if parsing the holidays fails.
 	 */
-	private void getHolidays() throws JSONException {
+	private ArrayList<Date> getHolidays() throws JSONException {
+		ArrayList<Date> holidays = new ArrayList<Date>();
+
 		String basisUrl = "http://kayaposoft.com/enrico/json/v1.0/"
 				+ "?action=getPublicHolidaysForDateRange&fromDate=%s&toDate=%s"
 				+ "&country=ger&region=Bavaria";
@@ -176,24 +168,8 @@ public class DayCalculator {
 				holidays.add(cal.getTime());
 			}
 		}
-	}
 
-	/**
-	 * Sets the time of today and target to midnight.
-	 */
-	private void setMidnight() {
-		if (today != null) {
-			today.set(Calendar.HOUR_OF_DAY, 0);
-			today.set(Calendar.MINUTE, 0);
-			today.set(Calendar.SECOND, 0);
-			today.set(Calendar.MILLISECOND, 0);
-		}
-		if (target != null) {
-			target.set(Calendar.HOUR_OF_DAY, 0);
-			target.set(Calendar.MINUTE, 0);
-			target.set(Calendar.SECOND, 0);
-			target.set(Calendar.MILLISECOND, 0);
-		}
+		return holidays;
 	}
 
 	/**
