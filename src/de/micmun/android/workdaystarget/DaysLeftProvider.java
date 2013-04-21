@@ -16,8 +16,13 @@
  */
 package de.micmun.android.workdaystarget;
 
+import java.util.Calendar;
+
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
@@ -29,6 +34,9 @@ import android.content.Intent;
  * 
  */
 public class DaysLeftProvider extends AppWidgetProvider {
+	private static final Intent update = new Intent(
+			DaysLeftService.ACTION_UPDATE);
+	private static final int REQUEST_CODE = 1;
 	private Context mContext;
 
 	/**
@@ -39,10 +47,48 @@ public class DaysLeftProvider extends AppWidgetProvider {
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {
 		mContext = context;
-		Intent sIntent = new Intent(mContext, DaysLeftService.class);
-		sIntent.setAction(DaysLeftService.ACTION_UPDATE);
-		mContext.startService(sIntent);
-		super.onUpdate(context, appWidgetManager, appWidgetIds);
+		mContext.startService(update);
+		scheduleUpdates();
 	}
 
+	/**
+	 * @see android.appwidget.AppWidgetProvider#onDeleted(android.content.Context,
+	 *      int[])
+	 */
+	@Override
+	public void onDeleted(Context context, int[] appWidgetIds) {
+		AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+		int[] remainingIds = mgr.getAppWidgetIds(new ComponentName(context, this
+				.getClass()));
+		if (remainingIds == null || remainingIds.length <= 0) {
+			PendingIntent pi = PendingIntent.getService(context, REQUEST_CODE,
+					update, PendingIntent.FLAG_NO_CREATE);
+			if (pi != null) {
+				AlarmManager am = (AlarmManager) context
+						.getSystemService(Context.ALARM_SERVICE);
+				am.cancel(pi);
+				pi.cancel();
+			}
+		}
+	}
+
+	/**
+	 * Sets a timer to schedule updates automatically.
+	 */
+	private void scheduleUpdates() {
+		Calendar date = Calendar.getInstance();
+		date.set(Calendar.SECOND, 0);
+		date.set(Calendar.MILLISECOND, 0);
+		date.add(Calendar.MINUTE, 1);
+		AlarmManager am = (AlarmManager) mContext
+				.getSystemService(Context.ALARM_SERVICE);
+		PendingIntent pi = PendingIntent.getService(mContext, REQUEST_CODE,
+				update, PendingIntent.FLAG_NO_CREATE);
+		if (pi == null) {
+			pi = PendingIntent.getService(mContext, REQUEST_CODE, update,
+					PendingIntent.FLAG_CANCEL_CURRENT);
+			am.setRepeating(AlarmManager.RTC, date.getTimeInMillis(),
+					6 * 60 * 60 * 1000, pi);
+		}
+	}
 }

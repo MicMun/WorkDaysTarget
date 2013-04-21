@@ -16,7 +16,9 @@
  */
 package de.micmun.android.workdaystarget;
 
+import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 import org.json.JSONException;
 
@@ -25,6 +27,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 /**
  * Service to handle updates.
@@ -83,6 +86,14 @@ public class DaysLeftService extends IntentService {
 				Log.e(TAG, "ERROR holidays: " + e.getLocalizedMessage());
 			}
 			Log.d(TAG, "Days: " + days);
+			RemoteViews rv = new RemoteViews(this.getPackageName(),
+					R.layout.appwidget_layout);
+			DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
+			String targetStr = df.format(target.getTime());
+			rv.setTextViewText(R.id.target, targetStr);
+			String dayStr = String.format(Locale.getDefault(), "%3d", days);
+			rv.setTextViewText(R.id.dayCount, dayStr);
+			appManager.updateAppWidget(appId, rv);
 		}
 	}
 }

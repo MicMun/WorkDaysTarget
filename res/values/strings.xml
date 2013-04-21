@@ -10,4 +10,6 @@
 	<string name="sunday">So</string>
 	<string name="holidays">Ho</string>
 	<string name="descServicePermission">Permission to access DaysLeftService.</string>
+	<string name="ok_button">Save</string>
+	<string name="cancel_button">Cancel</string>
 </resources>
