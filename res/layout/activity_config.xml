@@ -10,10 +10,13 @@
 	<DatePicker
 		android:id="@+id/targetDateChooser"
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content" />
+		android:layout_height="wrap_content"
+		android:calendarViewShown="false" />
 	<GridLayout
+		android:id="@+id/checkedDays"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:layout_below="@id/targetDateChooser"
 		android:columnCount="4"
 		android:rowCount="2" >
 		<CheckBox
@@ -62,13 +65,14 @@
 			android:id="@+id/chkHoliday"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:checked="true"
+			android:checked="false"
 			android:text="@string/holidays" />
 	</GridLayout>
 	<LinearLayout
 		style="?android:attr/buttonBarStyle"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:layout_below="@id/checkedDays"
 		android:orientation="horizontal" >
 		<Button
 			android:id="@+id/okButton"

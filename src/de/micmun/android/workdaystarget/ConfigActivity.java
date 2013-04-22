@@ -2,6 +2,7 @@ package de.micmun.android.workdaystarget;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
@@ -12,7 +13,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
-import android.widget.RemoteViews;
 
 /**
  * Activity for Configuration of the widget.
@@ -24,11 +24,17 @@ public class ConfigActivity extends Activity implements OnClickListener {
 	private Button okBtn;
 	private Button cancelBtn;
 
-	private int appId;
+	private int appId = AppWidgetManager.INVALID_APPWIDGET_ID;
+	private PrefManager mPrefManager;
+
+	private DatePicker mDatePicker;
+	private CheckBox[] checkedDays;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setResult(RESULT_CANCELED);
+
 		setContentView(R.layout.activity_config);
 
 		okBtn = (Button) findViewById(R.id.okButton);
@@ -42,63 +48,43 @@ public class ConfigActivity extends Activity implements OnClickListener {
 			appId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,
 					AppWidgetManager.INVALID_APPWIDGET_ID);
 		}
+
+		// if no valid id, cancel.
+		if (appId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+			finish();
+		}
+		mPrefManager = new PrefManager(this, appId);
+		load();
 	}
 
 	/**
 	 * Save the configuration.
 	 */
 	private void save() {
-		PrefManager pm = new PrefManager(this, appId);
 		HashMap<String, Object> map = new HashMap<String, Object>();
+		String[] chkKeys = { PrefManager.KEY_MONDAY, PrefManager.KEY_TUESDAY,
+				PrefManager.KEY_WEDNESDAY, PrefManager.KEY_THURSDAY,
+				PrefManager.KEY_FRIDAY, PrefManager.KEY_SATURDAY,
+				PrefManager.KEY_SUNDAY, PrefManager.KEY_HOLIDAY };
 
 		// Target date
-		DatePicker dp = (DatePicker) findViewById(R.id.targetDateChooser);
 		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.DAY_OF_MONTH, dp.getDayOfMonth());
-		cal.set(Calendar.MONTH, dp.getMonth());
-		cal.set(Calendar.YEAR, dp.getYear());
+		cal.set(Calendar.DAY_OF_MONTH, mDatePicker.getDayOfMonth());
+		cal.set(Calendar.MONTH, mDatePicker.getMonth());
+		cal.set(Calendar.YEAR, mDatePicker.getYear());
 		Long target = Long.valueOf(cal.getTimeInMillis());
 		map.put(PrefManager.KEY_TARGET, target);
 
 		// Checked days
-		CheckBox cb = null;
 		Boolean b = null;
 
-		// Monday
-		cb = (CheckBox) findViewById(R.id.chkMonday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_MONDAY, b);
-		// Tuesday
-		cb = (CheckBox) findViewById(R.id.chkTuesday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_TUESDAY, b);
-		// Wednesday
-		cb = (CheckBox) findViewById(R.id.chkWednesday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_WEDNESDAY, b);
-		// Thursday
-		cb = (CheckBox) findViewById(R.id.chkThursday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_THURSDAY, b);
-		// Friday
-		cb = (CheckBox) findViewById(R.id.chkFriday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_FRIDAY, b);
-		// Saturday
-		cb = (CheckBox) findViewById(R.id.chkSaturday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_SATURDAY, b);
-		// Sunday
-		cb = (CheckBox) findViewById(R.id.chkSunday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_SUNDAY, b);
-		// Holidays
-		cb = (CheckBox) findViewById(R.id.chkHoliday);
-		b = Boolean.valueOf(cb.isChecked());
-		map.put(PrefManager.KEY_HOLIDAY, b);
+		for (int i = 0; i < checkedDays.length; ++i) {
+			b = Boolean.valueOf(checkedDays[i].isChecked());
+			map.put(chkKeys[i], b);
+		}
 
 		// save
-		pm.save(map);
+		mPrefManager.save(map);
 	}
 
 	/**
@@ -106,15 +92,9 @@ public class ConfigActivity extends Activity implements OnClickListener {
 	 */
 	@Override
 	public void onClick(View v) {
-		setResult(RESULT_CANCELED);
-
 		if (v == okBtn) {
 			save();
-			// update widget
-			AppWidgetManager awm = AppWidgetManager.getInstance(this);
-			RemoteViews views = new RemoteViews(this.getPackageName(),
-					R.layout.appwidget_layout);
-			awm.updateAppWidget(appId, views);
+			startService(DaysLeftProvider.UPDATE);
 			// result
 			Intent resultValue = new Intent();
 			resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appId);
@@ -122,5 +102,63 @@ public class ConfigActivity extends Activity implements OnClickListener {
 		}
 
 		finish();
+	}
+
+	/**
+	 * Loads the preference.
+	 */
+	private void load() {
+		Map<String, Object> map = mPrefManager.load();
+		// Target date
+		mDatePicker = (DatePicker) findViewById(R.id.targetDateChooser);
+		long tlong = ((Long) map.get(PrefManager.KEY_TARGET)).longValue();
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(tlong);
+		mDatePicker.init(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+				cal.get(Calendar.DAY_OF_MONTH), null);
+
+		// Checked days
+		checkedDays = new CheckBox[8];
+		Boolean b = null;
+
+		// Monday
+		checkedDays[0] = (CheckBox) findViewById(R.id.chkMonday);
+		b = (Boolean) map.get(PrefManager.KEY_MONDAY);
+		checkedDays[0].setChecked(b.booleanValue());
+
+		// Tuesday
+		checkedDays[1] = (CheckBox) findViewById(R.id.chkTuesday);
+		b = (Boolean) map.get(PrefManager.KEY_TUESDAY);
+		checkedDays[1].setChecked(b.booleanValue());
+
+		// Wednesday
+		checkedDays[2] = (CheckBox) findViewById(R.id.chkWednesday);
+		b = (Boolean) map.get(PrefManager.KEY_WEDNESDAY);
+		checkedDays[2].setChecked(b.booleanValue());
+
+		// Thursday
+		checkedDays[3] = (CheckBox) findViewById(R.id.chkThursday);
+		b = (Boolean) map.get(PrefManager.KEY_THURSDAY);
+		checkedDays[3].setChecked(b.booleanValue());
+
+		// Friday
+		checkedDays[4] = (CheckBox) findViewById(R.id.chkFriday);
+		b = (Boolean) map.get(PrefManager.KEY_FRIDAY);
+		checkedDays[4].setChecked(b.booleanValue());
+
+		// Saturday
+		checkedDays[5] = (CheckBox) findViewById(R.id.chkSaturday);
+		b = (Boolean) map.get(PrefManager.KEY_SATURDAY);
+		checkedDays[5].setChecked(b.booleanValue());
+
+		// Sunday
+		checkedDays[6] = (CheckBox) findViewById(R.id.chkSunday);
+		b = (Boolean) map.get(PrefManager.KEY_SUNDAY);
+		checkedDays[6].setChecked(b.booleanValue());
+
+		// Holidays
+		checkedDays[7] = (CheckBox) findViewById(R.id.chkHoliday);
+		b = (Boolean) map.get(PrefManager.KEY_HOLIDAY);
+		checkedDays[7].setChecked(b.booleanValue());
 	}
 }

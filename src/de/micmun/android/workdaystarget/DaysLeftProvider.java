@@ -34,7 +34,7 @@ import android.content.Intent;
  * 
  */
 public class DaysLeftProvider extends AppWidgetProvider {
-	private static final Intent update = new Intent(
+	public static final Intent UPDATE = new Intent(
 			DaysLeftService.ACTION_UPDATE);
 	private static final int REQUEST_CODE = 1;
 	private Context mContext;
@@ -47,7 +47,7 @@ public class DaysLeftProvider extends AppWidgetProvider {
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {
 		mContext = context;
-		mContext.startService(update);
+		mContext.startService(UPDATE);
 		scheduleUpdates();
 	}
 
@@ -62,7 +62,7 @@ public class DaysLeftProvider extends AppWidgetProvider {
 				.getClass()));
 		if (remainingIds == null || remainingIds.length <= 0) {
 			PendingIntent pi = PendingIntent.getService(context, REQUEST_CODE,
-					update, PendingIntent.FLAG_NO_CREATE);
+					UPDATE, PendingIntent.FLAG_NO_CREATE);
 			if (pi != null) {
 				AlarmManager am = (AlarmManager) context
 						.getSystemService(Context.ALARM_SERVICE);
@@ -79,16 +79,16 @@ public class DaysLeftProvider extends AppWidgetProvider {
 		Calendar date = Calendar.getInstance();
 		date.set(Calendar.SECOND, 0);
 		date.set(Calendar.MILLISECOND, 0);
-		date.add(Calendar.MINUTE, 1);
 		AlarmManager am = (AlarmManager) mContext
 				.getSystemService(Context.ALARM_SERVICE);
 		PendingIntent pi = PendingIntent.getService(mContext, REQUEST_CODE,
-				update, PendingIntent.FLAG_NO_CREATE);
+				UPDATE, PendingIntent.FLAG_NO_CREATE);
 		if (pi == null) {
-			pi = PendingIntent.getService(mContext, REQUEST_CODE, update,
+			pi = PendingIntent.getService(mContext, REQUEST_CODE, UPDATE,
 					PendingIntent.FLAG_CANCEL_CURRENT);
+			long seconds = 6 * 60 * 60;
 			am.setRepeating(AlarmManager.RTC, date.getTimeInMillis(),
-					6 * 60 * 60 * 1000, pi);
+					seconds * 1000, pi);
 		}
 	}
 }

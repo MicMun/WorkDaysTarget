@@ -11,6 +11,7 @@ import java.util.Map;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.util.Log;
 
 /**
  * Manager for the shared preferences.
@@ -19,7 +20,7 @@ import android.content.SharedPreferences.Editor;
  * @version 1.0, 19.04.2013
  */
 public class PrefManager {
-	private final String PREF_FILE_NAME = "workdaystarget_";
+	private final String FILE_NAME = "de.micmun.android.workdaystarget.DaysLeftProvider";
 
 	// Keys
 	/**
@@ -53,7 +54,7 @@ public class PrefManager {
 	/**
 	 * Key for monday checked.
 	 */
-	public static final String KEY_SUNDAY = "SUNDYDAY";
+	public static final String KEY_SUNDAY = "SUNDAY";
 	/**
 	 * Key for holiday checked.
 	 */
@@ -62,6 +63,7 @@ public class PrefManager {
 	private String mFileName;
 	private SharedPreferences mSharedPref;
 	private Context mCtx;
+	private int mAppId;
 
 	/**
 	 * Creates a new PrefManager with Context und appId.
@@ -73,8 +75,9 @@ public class PrefManager {
 	 */
 	public PrefManager(Context ctx, int appId) {
 		mCtx = ctx;
-		mFileName = PREF_FILE_NAME + appId;
+		mFileName = FILE_NAME + appId;
 		mSharedPref = mCtx.getSharedPreferences(mFileName, Context.MODE_PRIVATE);
+		mAppId = appId;
 	}
 
 	/**
@@ -89,44 +92,46 @@ public class PrefManager {
 		// target
 		Long target = (Long) input.get(KEY_TARGET);
 		if (target != null) {
-			editor.putLong(KEY_TARGET, target.longValue());
+			editor.putLong(KEY_TARGET + mAppId, target.longValue());
 		}
 
 		// checked values
 		Boolean isMon = (Boolean) input.get(KEY_MONDAY);
 		if (isMon != null) {
-			editor.putBoolean(KEY_MONDAY, isMon.booleanValue());
+			editor.putBoolean(KEY_MONDAY + mAppId, isMon.booleanValue());
 		}
 		Boolean isTue = (Boolean) input.get(KEY_TUESDAY);
 		if (isTue != null) {
-			editor.putBoolean(KEY_TUESDAY, isTue.booleanValue());
+			editor.putBoolean(KEY_TUESDAY + mAppId, isTue.booleanValue());
 		}
 		Boolean isWed = (Boolean) input.get(KEY_WEDNESDAY);
 		if (isWed != null) {
-			editor.putBoolean(KEY_WEDNESDAY, isWed.booleanValue());
+			editor.putBoolean(KEY_WEDNESDAY + mAppId, isWed.booleanValue());
 		}
 		Boolean isThurs = (Boolean) input.get(KEY_THURSDAY);
 		if (isThurs != null) {
-			editor.putBoolean(KEY_THURSDAY, isThurs.booleanValue());
+			editor.putBoolean(KEY_THURSDAY + mAppId, isThurs.booleanValue());
 		}
 		Boolean isFri = (Boolean) input.get(KEY_FRIDAY);
 		if (isFri != null) {
-			editor.putBoolean(KEY_FRIDAY, isFri.booleanValue());
+			editor.putBoolean(KEY_FRIDAY + mAppId, isFri.booleanValue());
 		}
 		Boolean isSat = (Boolean) input.get(KEY_SATURDAY);
 		if (isSat != null) {
-			editor.putBoolean(KEY_SATURDAY, isSat.booleanValue());
+			editor.putBoolean(KEY_SATURDAY + mAppId, isSat.booleanValue());
 		}
 		Boolean isSun = (Boolean) input.get(KEY_SUNDAY);
 		if (isSun != null) {
-			editor.putBoolean(KEY_SUNDAY, isSun.booleanValue());
+			editor.putBoolean(KEY_SUNDAY + mAppId, isSun.booleanValue());
 		}
 		Boolean isHoli = (Boolean) input.get(KEY_HOLIDAY);
 		if (isHoli != null) {
-			editor.putBoolean(KEY_HOLIDAY, isHoli.booleanValue());
+			editor.putBoolean(KEY_HOLIDAY + mAppId, isHoli.booleanValue());
 		}
 
-		editor.commit();
+		if (!editor.commit()) {
+			Log.e("PrefManager", "Error comitting SharedPreferencess");
+		}
 	}
 
 	/**
@@ -138,7 +143,8 @@ public class PrefManager {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 
 		// Target
-		Long target = mSharedPref.getLong(KEY_TARGET, System.currentTimeMillis());
+		Long target = mSharedPref.getLong(KEY_TARGET + mAppId,
+				System.currentTimeMillis());
 		map.put(KEY_TARGET, target);
 
 		// checked values
@@ -147,7 +153,8 @@ public class PrefManager {
 		boolean[] defValues = { true, true, true, true, true, false, false, false };
 
 		for (int i = 0; i < chkKeys.length; ++i) {
-			Boolean check = mSharedPref.getBoolean(chkKeys[i], defValues[i]);
+			Boolean check = mSharedPref.getBoolean(chkKeys[i] + mAppId,
+					defValues[i]);
 			map.put(chkKeys[i], check);
 		}
 
@@ -162,7 +169,8 @@ public class PrefManager {
 	public Calendar getTarget() {
 		Calendar cal = Calendar.getInstance();
 
-		long target = mSharedPref.getLong(KEY_TARGET, System.currentTimeMillis());
+		long target = mSharedPref.getLong(KEY_TARGET + mAppId,
+				System.currentTimeMillis());
 		cal.setTimeInMillis(target);
 
 		return cal;
@@ -181,7 +189,7 @@ public class PrefManager {
 		boolean chk;
 
 		for (int i = 0; i < chkKeys.length; ++i) {
-			chk = mSharedPref.getBoolean(chkKeys[i], defValues[i]);
+			chk = mSharedPref.getBoolean(chkKeys[i] + mAppId, defValues[i]);
 			checkDays[i] = chk;
 		}
 

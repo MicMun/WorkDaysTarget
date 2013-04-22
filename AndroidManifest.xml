@@ -12,12 +12,14 @@
 		android:protectionLevel="normal" >
 	</permission>
 	<uses-permission android:name="de.micmun.android.workdaystarget.permission.ACCESS_SERVICE" />
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 	<application
 		android:allowBackup="true"
 		android:icon="@drawable/ic_launcher"
 		android:label="@string/app_name"
 		android:theme="@style/AppTheme" >
-		<receiver android:name=".DaysLeftProvider" >
+		<receiver android:name="de.micmun.android.workdaystarget.DaysLeftProvider" >
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 			</intent-filter>
@@ -33,7 +35,7 @@
 			</intent-filter>
 		</activity>
 		<service
-			android:name=".DaysLeftService"
+			android:name="de.micmun.android.workdaystarget.DaysLeftService"
 			android:permission="de.micmun.android.workdaystarget.permission.ACCESS_SERVICE" >
 			<intent-filter>
 				<action android:name="de.micmun.android.workdaystarget.ACTION_UPDATE" />

@@ -25,7 +25,10 @@ import org.json.JSONException;
 import android.app.IntentService;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -75,25 +78,43 @@ public class DaysLeftService extends IntentService {
 		DayCalculator dayCalc = new DayCalculator();
 
 		for (int appId : appIds) {
-			Log.d(TAG, "Widget: " + appId);
 			PrefManager pm = new PrefManager(this, appId);
 			Calendar target = pm.getTarget();
 			boolean[] chkDays = pm.getCheckedDays();
 			int days = 0;
-			try {
-				days = dayCalc.getDaysLeft(target.getTime(), chkDays);
-			} catch (JSONException e) {
-				Log.e(TAG, "ERROR holidays: " + e.getLocalizedMessage());
+			if (isOnline()) {
+				try {
+					days = dayCalc.getDaysLeft(target.getTime(), chkDays);
+				} catch (JSONException e) {
+					Log.e(TAG, "ERROR holidays: " + e.getLocalizedMessage());
+				}
+			} else {
+				Log.e(TAG, "No internet connection!");
 			}
-			Log.d(TAG, "Days: " + days);
 			RemoteViews rv = new RemoteViews(this.getPackageName(),
 					R.layout.appwidget_layout);
 			DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
-			String targetStr = df.format(target.getTime());
+			String targetStr = df.format(target.getTime()) + " -> ";
 			rv.setTextViewText(R.id.target, targetStr);
 			String dayStr = String.format(Locale.getDefault(), "%3d", days);
 			rv.setTextViewText(R.id.dayCount, dayStr);
 			appManager.updateAppWidget(appId, rv);
 		}
+	}
+
+	/**
+	 * Returns <code>true</code>, if you are connected to the internet.
+	 * 
+	 * @return <code>true</code>, if connected to the internet.
+	 */
+	private boolean isOnline() {
+		boolean ret = false;
+		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo ni = cm.getActiveNetworkInfo();
+
+		if (ni != null && ni.isConnected() && !ni.isRoaming())
+			ret = true;
+
+		return ret;
 	}
 }
