@@ -3,7 +3,7 @@
 	android:configure="de.micmun.android.workdaystarget.ConfigActivity"
 	android:initialLayout="@layout/appwidget_layout"
 	android:minHeight="40dp"
-	android:minWidth="110dp"
+	android:minWidth="40dp"
 	android:resizeMode="horizontal"
 	android:updatePeriodMillis="21600000" android:widgetCategory="home_screen">
 </appwidget-provider>

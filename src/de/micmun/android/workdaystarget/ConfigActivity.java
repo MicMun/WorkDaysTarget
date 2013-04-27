@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -53,6 +54,7 @@ public class ConfigActivity extends Activity implements OnClickListener {
 		if (appId == AppWidgetManager.INVALID_APPWIDGET_ID) {
 			finish();
 		}
+		Log.d("ConfigActivity", "config app id: " + appId);
 		mPrefManager = new PrefManager(this, appId);
 		load();
 	}

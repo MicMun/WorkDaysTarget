@@ -23,12 +23,14 @@ import java.util.Locale;
 import org.json.JSONException;
 
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -72,12 +74,14 @@ public class DaysLeftService extends IntentService {
 	 */
 	private void updateDays() {
 		AppWidgetManager appManager = AppWidgetManager.getInstance(this);
-		ComponentName cName = new ComponentName(this, DaysLeftProvider.class);
+		ComponentName cName = new ComponentName(getApplicationContext(),
+				DaysLeftProvider.class);
 		int[] appIds = appManager.getAppWidgetIds(cName);
 
 		DayCalculator dayCalc = new DayCalculator();
 
 		for (int appId : appIds) {
+			Log.d(TAG, "Update app id: " + appId);
 			PrefManager pm = new PrefManager(this, appId);
 			Calendar target = pm.getTarget();
 			boolean[] chkDays = pm.getCheckedDays();
@@ -94,10 +98,23 @@ public class DaysLeftService extends IntentService {
 			RemoteViews rv = new RemoteViews(this.getPackageName(),
 					R.layout.appwidget_layout);
 			DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
-			String targetStr = df.format(target.getTime()) + " -> ";
+			String targetStr = df.format(target.getTime());
 			rv.setTextViewText(R.id.target, targetStr);
-			String dayStr = String.format(Locale.getDefault(), "%3d", days);
+			String dayStr = String.format(Locale.getDefault(), "%d", days);
 			rv.setTextViewText(R.id.dayCount, dayStr);
+
+			// put widget id into intent
+			Intent configIntent = new Intent(this, ConfigActivity.class);
+			configIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			configIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appId);
+			configIntent.setData(Uri.parse(configIntent
+					.toUri(Intent.URI_INTENT_SCHEME)));
+			PendingIntent pendIntent = PendingIntent.getActivity(this, 0,
+					configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			rv.setOnClickPendingIntent(R.id.widgetLayout, pendIntent);
+			
+			// update widget
 			appManager.updateAppWidget(appId, rv);
 		}
 	}
