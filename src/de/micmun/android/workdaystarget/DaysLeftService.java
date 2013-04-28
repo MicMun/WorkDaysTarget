@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 MicMun
+ * Copyright 2013 by Michael Munzert
  * 
  * This program is free software: you can redistribute it and/or modify it under 
  * the terms of the GNU >General Public License as published by the 
@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License along with 
  * this program. If not, see >http://www.gnu.org/licenses/.
  */
+
 package de.micmun.android.workdaystarget;
 
 import java.text.DateFormat;
@@ -113,7 +114,7 @@ public class DaysLeftService extends IntentService {
 			PendingIntent pendIntent = PendingIntent.getActivity(this, 0,
 					configIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 			rv.setOnClickPendingIntent(R.id.widgetLayout, pendIntent);
-			
+
 			// update widget
 			appManager.updateAppWidget(appId, rv);
 		}
