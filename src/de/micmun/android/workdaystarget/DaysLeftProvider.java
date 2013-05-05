@@ -17,13 +17,8 @@
 
 package de.micmun.android.workdaystarget;
 
-import java.util.Calendar;
-
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
@@ -36,7 +31,6 @@ import android.content.Intent;
  */
 public class DaysLeftProvider extends AppWidgetProvider {
 	public static final Intent UPDATE = new Intent(DaysLeftService.ACTION_UPDATE);
-	private static final int REQUEST_CODE = 1;
 	private Context mContext;
 
 	/**
@@ -48,47 +42,5 @@ public class DaysLeftProvider extends AppWidgetProvider {
 			int[] appWidgetIds) {
 		mContext = context;
 		mContext.startService(UPDATE);
-		scheduleUpdates();
-	}
-
-	/**
-	 * @see android.appwidget.AppWidgetProvider#onDeleted(android.content.Context,
-	 *      int[])
-	 */
-	@Override
-	public void onDeleted(Context context, int[] appWidgetIds) {
-		AppWidgetManager mgr = AppWidgetManager.getInstance(context);
-		int[] remainingIds = mgr.getAppWidgetIds(new ComponentName(context, this
-				.getClass()));
-		if (remainingIds == null || remainingIds.length <= 0) {
-			PendingIntent pi = PendingIntent.getService(context, REQUEST_CODE,
-					UPDATE, PendingIntent.FLAG_NO_CREATE);
-			if (pi != null) {
-				AlarmManager am = (AlarmManager) context
-						.getSystemService(Context.ALARM_SERVICE);
-				am.cancel(pi);
-				pi.cancel();
-			}
-		}
-	}
-
-	/**
-	 * Sets a timer to schedule updates automatically.
-	 */
-	private void scheduleUpdates() {
-		Calendar date = Calendar.getInstance();
-		date.set(Calendar.SECOND, 0);
-		date.set(Calendar.MILLISECOND, 0);
-		AlarmManager am = (AlarmManager) mContext
-				.getSystemService(Context.ALARM_SERVICE);
-		PendingIntent pi = PendingIntent.getService(mContext, REQUEST_CODE,
-				UPDATE, PendingIntent.FLAG_NO_CREATE);
-		if (pi == null) {
-			pi = PendingIntent.getService(mContext, REQUEST_CODE, UPDATE,
-					PendingIntent.FLAG_CANCEL_CURRENT);
-			long seconds = 6 * 60 * 60;
-			am.setRepeating(AlarmManager.RTC, date.getTimeInMillis(),
-					seconds * 1000, pi);
-		}
 	}
 }

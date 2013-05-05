@@ -5,5 +5,5 @@
 	android:minHeight="40dp"
 	android:minWidth="40dp"
 	android:resizeMode="none"
-	android:updatePeriodMillis="21600000" android:widgetCategory="home_screen" android:previewImage="@drawable/preview">
+	android:updatePeriodMillis="1800000" android:widgetCategory="home_screen" android:previewImage="@drawable/preview">
 </appwidget-provider>
