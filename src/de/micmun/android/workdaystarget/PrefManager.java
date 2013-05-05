@@ -37,9 +37,13 @@ public class PrefManager {
 
 	// Keys
 	/**
-	 * Key for the target date
+	 * Key for the target date.
 	 */
 	public static final String KEY_TARGET = "TARGET";
+	/**
+	 * Key for the difference.
+	 */
+	public static final String KEY_DIFF = "DIFFERENCE";
 	/**
 	 * Key for monday checked.
 	 */
@@ -73,7 +77,6 @@ public class PrefManager {
 	 */
 	public static final String KEY_HOLIDAY = "HOLIDAY";
 
-	private String mFileName;
 	private SharedPreferences mSharedPref;
 	private Context mCtx;
 	private int mAppId;
@@ -88,8 +91,7 @@ public class PrefManager {
 	 */
 	public PrefManager(Context ctx, int appId) {
 		mCtx = ctx;
-		mFileName = FILE_NAME + appId;
-		mSharedPref = mCtx.getSharedPreferences(mFileName, Context.MODE_PRIVATE);
+		mSharedPref = mCtx.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
 		mAppId = appId;
 	}
 
@@ -106,6 +108,12 @@ public class PrefManager {
 		Long target = (Long) input.get(KEY_TARGET);
 		if (target != null) {
 			editor.putLong(KEY_TARGET + mAppId, target.longValue());
+		}
+
+		// Last difference
+		Long diff = (Long) input.get(KEY_DIFF);
+		if (diff != null) {
+			editor.putLong(KEY_DIFF + mAppId, diff.longValue());
 		}
 
 		// checked values
@@ -159,6 +167,10 @@ public class PrefManager {
 		Long target = mSharedPref.getLong(KEY_TARGET + mAppId,
 				System.currentTimeMillis());
 		map.put(KEY_TARGET, target);
+		
+		// Difference
+		Long diff = mSharedPref.getLong(KEY_DIFF + mAppId, 0L);
+		map.put(KEY_DIFF, diff);
 
 		// checked values
 		String[] chkKeys = { KEY_MONDAY, KEY_TUESDAY, KEY_WEDNESDAY,
@@ -187,6 +199,20 @@ public class PrefManager {
 		cal.setTimeInMillis(target);
 
 		return cal;
+	}
+	
+	/**
+	 * Returns the last difference to target.
+	 *
+	 * @return last difference to target.
+	 */
+	public int getLastDiff() {
+		int l = 0;
+		
+		Long diff = mSharedPref.getLong(KEY_DIFF + mAppId, 0L);
+		l = diff.intValue();
+		
+		return l;
 	}
 
 	/**

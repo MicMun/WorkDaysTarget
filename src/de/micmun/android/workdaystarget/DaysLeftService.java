@@ -19,7 +19,9 @@ package de.micmun.android.workdaystarget;
 
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -80,16 +82,28 @@ public class DaysLeftService extends IntentService {
 		int[] appIds = appManager.getAppWidgetIds(cName);
 
 		DayCalculator dayCalc = new DayCalculator();
+		if (!isOnline()) {
+			try {
+				Thread.sleep(60000);
+			} catch (InterruptedException e) {
+				Log.e(TAG, "Interrupted: " + e.getLocalizedMessage());
+			}
+		}
 
 		for (int appId : appIds) {
 			Log.d(TAG, "Update app id: " + appId);
 			PrefManager pm = new PrefManager(this, appId);
 			Calendar target = pm.getTarget();
 			boolean[] chkDays = pm.getCheckedDays();
-			int days = 0;
+			int days = pm.getLastDiff();
+
 			if (isOnline()) {
 				try {
 					days = dayCalc.getDaysLeft(target.getTime(), chkDays);
+					Map<String, Object> saveMap = new HashMap<String, Object>();
+					Long diff = Long.valueOf(days);
+					saveMap.put(PrefManager.KEY_DIFF, diff);
+					pm.save(saveMap);
 				} catch (JSONException e) {
 					Log.e(TAG, "ERROR holidays: " + e.getLocalizedMessage());
 				}
