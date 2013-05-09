@@ -30,7 +30,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 /**
  * Activity for Configuration of the widget.
@@ -128,6 +131,7 @@ public class ConfigActivity extends Activity implements OnClickListener {
 	 */
 	private void load() {
 		Map<String, Object> map = mPrefManager.load();
+
 		// Target date
 		mDatePicker = (DatePicker) findViewById(R.id.targetDateChooser);
 		long tlong = ((Long) map.get(PrefManager.KEY_TARGET)).longValue();
@@ -144,40 +148,94 @@ public class ConfigActivity extends Activity implements OnClickListener {
 		checkedDays[0] = (CheckBox) findViewById(R.id.chkMonday);
 		b = (Boolean) map.get(PrefManager.KEY_MONDAY);
 		checkedDays[0].setChecked(b.booleanValue());
+		checkedDays[0].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.mondayDesc));
 
 		// Tuesday
 		checkedDays[1] = (CheckBox) findViewById(R.id.chkTuesday);
 		b = (Boolean) map.get(PrefManager.KEY_TUESDAY);
 		checkedDays[1].setChecked(b.booleanValue());
+		checkedDays[1].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.tuesdayDesc));
 
 		// Wednesday
 		checkedDays[2] = (CheckBox) findViewById(R.id.chkWednesday);
 		b = (Boolean) map.get(PrefManager.KEY_WEDNESDAY);
 		checkedDays[2].setChecked(b.booleanValue());
+		checkedDays[2].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.wednesdayDesc));
 
 		// Thursday
 		checkedDays[3] = (CheckBox) findViewById(R.id.chkThursday);
 		b = (Boolean) map.get(PrefManager.KEY_THURSDAY);
 		checkedDays[3].setChecked(b.booleanValue());
+		checkedDays[3].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.thursdayDesc));
 
 		// Friday
 		checkedDays[4] = (CheckBox) findViewById(R.id.chkFriday);
 		b = (Boolean) map.get(PrefManager.KEY_FRIDAY);
 		checkedDays[4].setChecked(b.booleanValue());
+		checkedDays[4].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.fridayDesc));
 
 		// Saturday
 		checkedDays[5] = (CheckBox) findViewById(R.id.chkSaturday);
 		b = (Boolean) map.get(PrefManager.KEY_SATURDAY);
 		checkedDays[5].setChecked(b.booleanValue());
+		checkedDays[5].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.saturdayDesc));
 
 		// Sunday
 		checkedDays[6] = (CheckBox) findViewById(R.id.chkSunday);
 		b = (Boolean) map.get(PrefManager.KEY_SUNDAY);
 		checkedDays[6].setChecked(b.booleanValue());
+		checkedDays[6].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.sundayDesc));
 
 		// Holidays
 		checkedDays[7] = (CheckBox) findViewById(R.id.chkHoliday);
 		b = (Boolean) map.get(PrefManager.KEY_HOLIDAY);
 		checkedDays[7].setChecked(b.booleanValue());
+		checkedDays[7].setOnCheckedChangeListener(new TooltipCheckedListener(
+				R.string.holidaysDesc));
+	}
+
+	/**
+	 * Shows a tooltip, when checkbox is checked or unchecked.
+	 * 
+	 * @author MicMun
+	 * @version 1.0, 09.05.2013
+	 * 
+	 */
+	private class TooltipCheckedListener implements OnCheckedChangeListener {
+		private int mId;
+
+		/**
+		 * @param id
+		 *           ressource id of the tooltip string.
+		 */
+		public TooltipCheckedListener(int id) {
+			mId = id;
+		}
+
+		/**
+		 * @see android.widget.CompoundButton.OnCheckedChangeListener#onCheckedChanged(android.widget.CompoundButton,
+		 *      boolean)
+		 */
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			String tooltip = getResources().getString(mId);
+
+			if (isChecked) {
+				tooltip += " " + getResources().getString(R.string.checked);
+			} else {
+				tooltip += " " + getResources().getString(R.string.unchecked);
+			}
+
+			Toast.makeText(buttonView.getContext(), tooltip, Toast.LENGTH_SHORT)
+					.show();
+		}
+
 	}
 }

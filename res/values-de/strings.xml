@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name">WorkDaysTarget</string>
-	<string name="monday">Mo</string>
+	<string name="montag">Mo</string>
+	<string name="mondayDesc">Montag</string>
 	<string name="tuesday">Di</string>
+	<string name="tuesdayDesc">Dienstag</string>
 	<string name="wednesday">Mi</string>
+	<string name="wednesdayDesc">Mittwoch</string>
 	<string name="thursday">Do</string>
+	<string name="thursdayDesc">Donnerstag</string>
 	<string name="friday">Fr</string>
+	<string name="fridayDesc">Freitag</string>
 	<string name="saturday">Sa</string>
+	<string name="saturdayDesc">Samstag</string>
 	<string name="sunday">So</string>
+	<string name="sundayDesc">Sonntag</string>
 	<string name="holidays">Ft</string>
+	<string name="holidaysDesc">Feiertage</string>
 	<string name="descServicePermission">Berechtigung für Zugriff auf den DaysLeftService.</string>
 	<string name="ok_button">Speichern</string>
 	<string name="cancel_button">Abbrechen</string>
+	
+	<!-- Tooltip checked and unchecked -->
+	<string name="unchecked">deaktiviert</string>
+	<string name="checked">aktiviert</string>
 </resources>
