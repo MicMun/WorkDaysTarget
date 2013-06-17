@@ -91,7 +91,6 @@ public class DaysLeftService extends IntentService {
 		}
 
 		for (int appId : appIds) {
-			Log.d(TAG, "Update app id: " + appId);
 			PrefManager pm = new PrefManager(this, appId);
 			Calendar target = pm.getTarget();
 			boolean[] chkDays = pm.getCheckedDays();
@@ -115,7 +114,8 @@ public class DaysLeftService extends IntentService {
 			DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
 			String targetStr = df.format(target.getTime());
 			rv.setTextViewText(R.id.target, targetStr);
-			String dayStr = String.format(Locale.getDefault(), "%d", days);
+			String dayStr = String.format(Locale.getDefault(), "%d %s", days,
+					getResources().getString(R.string.unit));
 			rv.setTextViewText(R.id.dayCount, dayStr);
 
 			// put widget id into intent

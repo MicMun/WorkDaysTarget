@@ -20,8 +20,11 @@
 	<string name="descServicePermission">Permission to access DaysLeftService.</string>
 	<string name="ok_button">Save</string>
 	<string name="cancel_button">Cancel</string>
+	<string name="unit">days</string>
 	
 	<!-- Tooltip checked and unchecked -->
 	<string name="unchecked">unchecked</string>
 	<string name="checked">checked</string>
+	
+	<string name="back_desc">Target background.</string>
 </resources>

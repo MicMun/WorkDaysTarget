@@ -75,17 +75,17 @@
 		android:layout_below="@id/checkedDays"
 		android:orientation="horizontal" >
 		<Button
+			android:id="@+id/cancelButton"
+			style="?android:attr/buttonBarButtonStyle"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:text="@string/cancel_button" />
+		<Button
 			android:id="@+id/okButton"
 			style="?android:attr/buttonBarButtonStyle"
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent"
 			android:hapticFeedbackEnabled="true"
 			android:text="@string/ok_button" />
-		<Button
-			android:id="@+id/cancelButton"
-			style="?android:attr/buttonBarButtonStyle"
-			android:layout_width="wrap_content"
-			android:layout_height="match_parent"
-			android:text="@string/cancel_button" />
 	</LinearLayout>
 </RelativeLayout>
