@@ -26,6 +26,7 @@ proguard/
 
 # Gradle
 .gradle
+settings.gradle
 build
 gradle/
 gradlew
