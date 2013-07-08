@@ -16,7 +16,7 @@
 
     <application android:allowBackup="true"
         android:label="@string/app_name"
-        android:icon="@drawable/ic_launcher">
+        android:icon="@drawable/ic_launcher" android:theme="@android:style/DeviceDefault.ButtonBar">
         <receiver android:name="de.micmun.android.workdaystarget.DaysLeftProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -27,7 +27,7 @@
         </receiver>
         <activity
                 android:name="de.micmun.android.workdaystarget.ConfigActivity"
-                android:label="@string/app_name" >
+                android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
