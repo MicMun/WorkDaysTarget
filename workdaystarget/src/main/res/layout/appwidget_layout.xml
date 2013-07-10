@@ -4,7 +4,7 @@
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
 	android:layout_gravity="center"
-	android:background="@android:color/transparent"
+	android:background="@color/blackTrans"
 	android:orientation="horizontal" >
 	<ImageView
 		android:id="@+id/imageView1"
