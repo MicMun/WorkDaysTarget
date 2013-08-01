@@ -41,140 +41,154 @@ import java.util.Locale;
  * @version 1.0, 07.04.2013
  */
 public class DayCalculator {
-   private static final int POS_HOLIDAY = 7; // position of holiday
-   private static final int POS_SUNDAY = 6; // position of sunday
-   private Calendar today = null;
-   private Calendar target = null;
+    private static final int POS_HOLIDAY = 7; // position of holiday
+    private static final int POS_SUNDAY = 6; // position of sunday
+    private Calendar today = null;
+    private Calendar target = null;
 
-   /**
-    * Creates a new DayCalculator with target date.
-    *
-    * @param t target date.
-    */
-   public DayCalculator() {
-      today = Calendar.getInstance();
-      target = Calendar.getInstance();
-      setMidnight(today);
-   }
+    /**
+     * Creates a new DayCalculator with target date.
+     */
+    public DayCalculator() {
+        today = Calendar.getInstance();
+        target = Calendar.getInstance();
+        setMidnight(today);
+    }
 
-   /**
-    * Returns the number of days between today and target, skipped days in
-    * appliance of checkedDays.
-    *
-    * @param t           Date of the target, to which to calculate the working days.
-    * @param checkedDays Array with boolean flags, which says if a weekday should count
-    *                    or not.
-    * @return days to target.
-    * @throws JSONException if an error occurs while getting the holidays from web service.
-    */
-   public int getDaysLeft(Date t, boolean[] checkedDays) throws JSONException {
-      target.setTime(t);
-      setMidnight(target);
-      ArrayList<Date> holidays = getHolidays();
+    /**
+     * Returns the number of days between today and target, skipped days in
+     * appliance of checkedDays.
+     *
+     * @param t           Date of the target, to which to calculate the working days.
+     * @param checkedDays Array with boolean flags, which says if a weekday should count
+     *                    or not.
+     * @return days to target.
+     * @throws JSONException if an error occurs while getting the holidays from web service.
+     */
+    public int getDaysLeft(Date t, boolean[] checkedDays) throws JSONException {
+        // sets target time at midnight
+        target.setTime(t);
+        setMidnight(target);
 
-      int count = 0;
-      Calendar curr = Calendar.getInstance();
-      curr.setTime(today.getTime());
+        int sign = 1;
 
-      while (curr.getTimeInMillis() != target.getTimeInMillis()) {
-         curr.add(Calendar.DAY_OF_MONTH, 1);
-         int dayOfWeek = curr.get(Calendar.DAY_OF_WEEK);
+        if (target.getTimeInMillis() < today.getTimeInMillis()) {
+            Calendar tmp = Calendar.getInstance();
+            tmp.setTimeInMillis(target.getTimeInMillis());
+            target.setTimeInMillis(today.getTimeInMillis());
+            today.setTimeInMillis(tmp.getTimeInMillis());
+            sign = -1; // negative days in the past
+        }
 
-         if (!checkedDays[POS_HOLIDAY] && holidays.contains(curr.getTime())) {
-            continue;
-         } else if (!checkedDays[POS_SUNDAY] && dayOfWeek == Calendar.SUNDAY) {
-            continue;
-         } else if (dayOfWeek != Calendar.SUNDAY
-                 && !checkedDays[dayOfWeek - Calendar.MONDAY]) {
-            continue;
-         }
-         count++;
-      }
+        // Holidays
+        ArrayList<Date> holidays = getHolidays();
 
-      return count;
-   }
+        // current time
+        Calendar curr = Calendar.getInstance();
+        curr.setTime(today.getTime());
 
-   /**
-    * Returns the list with holydays between now and target.
-    *
-    * @return the list with holydays between now and target.
-    * @throws JSONException if parsing the holidays fails.
-    */
-   private ArrayList<Date> getHolidays() throws JSONException {
-      ArrayList<Date> holidays = new ArrayList<Date>();
+        int count = 0;
 
-      String basisUrl = "http://kayaposoft.com/enrico/json/v1.0/"
-              + "?action=getPublicHolidaysForDateRange&fromDate=%s&toDate=%s"
-              + "&country=ger&region=Bavaria";
-      SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy",
-              Locale.getDefault());
+        while (curr.getTimeInMillis() != target.getTimeInMillis()) {
+            curr.add(Calendar.DAY_OF_MONTH, 1);
+            int dayOfWeek = curr.get(Calendar.DAY_OF_WEEK);
 
-      String url = String.format(basisUrl, sdf.format(today.getTime()),
-              sdf.format(target.getTime()));
-      BufferedReader br = null;
-      String text = null;
-
-      try {
-         URL httpUrl = new URL(url);
-         HttpURLConnection con = (HttpURLConnection) httpUrl.openConnection();
-         con.setRequestMethod("GET");
-         con.connect();
-         InputStream is = con.getInputStream();
-         br = new BufferedReader(new InputStreamReader(is));
-         StringBuffer sb = new StringBuffer();
-         String line;
-
-         while ((line = br.readLine()) != null) {
-            sb.append(line);
-            sb.append('\n');
-         }
-         br.close();
-         text = sb.toString();
-      } catch (MalformedURLException e) {
-         System.err.println("FEHLER: " + e.getMessage());
-         holidays = null;
-      } catch (IOException e) {
-         System.err.println("FEHLER: " + e.getMessage());
-         holidays = null;
-      } finally {
-         if (br != null) {
-            try {
-               br.close();
-            } catch (IOException e) {
+            if (!checkedDays[POS_HOLIDAY] && holidays.contains(curr.getTime())) {
+                continue;
+            } else if (!checkedDays[POS_SUNDAY] && dayOfWeek == Calendar.SUNDAY) {
+                continue;
+            } else if (dayOfWeek != Calendar.SUNDAY
+                    && !checkedDays[dayOfWeek - Calendar.MONDAY]) {
+                continue;
             }
-            br = null;
-         }
-      }
+            count++;
+        }
 
-      if (text != null) {
-         JSONArray array = new JSONArray(text);
-         for (int i = 0; i < array.length(); ++i) {
-            JSONObject h = array.getJSONObject(i);
-            JSONObject o = h.getJSONObject("date");
-            int day = o.getInt("day");
-            int month = o.getInt("month");
-            int year = o.getInt("year");
-            Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.DAY_OF_MONTH, day);
-            cal.set(Calendar.MONTH, month - 1);
-            cal.set(Calendar.YEAR, year);
-            setMidnight(cal);
-            holidays.add(cal.getTime());
-         }
-      }
+        count *= sign; // if target is in the past, sign == -1
 
-      return holidays;
-   }
+        return count;
+    }
 
-   /**
-    * Sets the time of given calendar to midnight.
-    *
-    * @param c calendar to set the time.
-    */
-   private void setMidnight(Calendar c) {
-      c.set(Calendar.HOUR_OF_DAY, 0);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-   }
+    /**
+     * Returns the list with holydays between now and target.
+     *
+     * @return the list with holydays between now and target.
+     * @throws JSONException if parsing the holidays fails.
+     */
+    private ArrayList<Date> getHolidays() throws JSONException {
+        ArrayList<Date> holidays = new ArrayList<Date>();
+
+        String basisUrl = "http://kayaposoft.com/enrico/json/v1.0/"
+                + "?action=getPublicHolidaysForDateRange&fromDate=%s&toDate=%s"
+                + "&country=ger&region=Bavaria";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy",
+                Locale.getDefault());
+
+        String url = String.format(basisUrl, sdf.format(today.getTime()),
+                sdf.format(target.getTime()));
+        BufferedReader br = null;
+        String text = null;
+
+        try {
+            URL httpUrl = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) httpUrl.openConnection();
+            con.setRequestMethod("GET");
+            con.connect();
+            InputStream is = con.getInputStream();
+            br = new BufferedReader(new InputStreamReader(is));
+            StringBuffer sb = new StringBuffer();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+                sb.append('\n');
+            }
+            br.close();
+            text = sb.toString();
+        } catch (MalformedURLException e) {
+            System.err.println("FEHLER: " + e.getMessage());
+            holidays = null;
+        } catch (IOException e) {
+            System.err.println("FEHLER: " + e.getMessage());
+            holidays = null;
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+
+        if (text != null) {
+            JSONArray array = new JSONArray(text);
+            for (int i = 0; i < array.length(); ++i) {
+                JSONObject h = array.getJSONObject(i);
+                JSONObject o = h.getJSONObject("date");
+                int day = o.getInt("day");
+                int month = o.getInt("month");
+                int year = o.getInt("year");
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.DAY_OF_MONTH, day);
+                cal.set(Calendar.MONTH, month - 1);
+                cal.set(Calendar.YEAR, year);
+                setMidnight(cal);
+                holidays.add(cal.getTime());
+            }
+        }
+
+        return holidays;
+    }
+
+    /**
+     * Sets the time of given calendar to midnight.
+     *
+     * @param c calendar to set the time.
+     */
+    private void setMidnight(Calendar c) {
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+    }
 }
